@@ -1,143 +1,424 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Following Instructions Test</title>
-    <!-- Load Tailwind CSS via CDN -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mission: Secret Buddy</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Add Google Font 'Inter' for better typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            /* A soft background gradient based on red/white */
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            min-height: 100vh;
-        }
-        
-        /* Custom animation for content appearance */
-        .fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-            opacity: 0;
-            transform: translateY(20px);
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            overscroll-behavior: none;
         }
 
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Ancient Scroll / Parchment Styles */
+        .parchment {
+            background-color: #f4e4bc;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.15'/%3E%3C/svg%3E");
+            box-shadow: inset 0 0 15px rgba(139, 69, 19, 0.15);
+        }
+        
+        .wood-rod {
+            background: linear-gradient(to right, #5c3a21, #8b5a2b, #4a2a18);
+            border-left: 2px solid #3a2211;
+        }
+
+        /* Scroll Wrapper Base */
+        .slider-track {
+            background: #fff;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-4 sm:p-8">
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
-    <div class="max-w-3xl w-full bg-white rounded-2xl shadow-xl overflow-hidden transition-all duration-300 ring-1 ring-red-100">
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Main Card -->
+    <div class="max-w-md w-full glass-card rounded-2xl shadow-xl overflow-hidden border-t-4 border-red-600 relative z-10">
         
-        <!-- Header Section with Language Toggle -->
-        <div class="bg-red-600 p-6 sm:p-8 text-center border-b border-red-700">
-            <h1 class="text-2xl sm:text-3xl font-bold text-white mb-6">Language / ภาษา</h1>
-            <div class="flex justify-center space-x-4">
-                <button onclick="showContent('th')" 
-                        class="px-6 py-3 bg-white text-red-600 font-semibold rounded-lg shadow-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 transition-colors duration-200">
-                    ไทย
-                </button>
-                <button onclick="showContent('en')" 
-                        class="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg shadow-md border border-red-400 hover:bg-red-400 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-75 transition-colors duration-200">
-                    Eng
-                </button>
-            </div>
+        <!-- Header -->
+        <div class="p-6 text-center border-b border-gray-100 bg-white/50">
+            <img src="https://www.codelabthailand.com/brand/logo.svg" alt="CodeLab Logo" class="h-12 mx-auto mb-4 drop-shadow-sm" onerror="this.src='https://placehold.co/200x50/ffffff/dc2626?text=CodeLab+Thailand'">
+            <h1 class="text-2xl font-bold text-gray-800">Mission: Secret Buddy</h1>
+            <p class="text-sm text-gray-500 mt-1">สถาบัน CodeLab Thailand</p>
         </div>
 
-        <!-- Content Area -->
-        <div id="content-container" class="p-6 sm:p-10 min-h-[400px] flex flex-col justify-center hidden">
-            
-            <!-- Thai Content (Hidden by default) -->
-            <div id="content-th" class="hidden text-gray-800 text-lg leading-relaxed">
-                <p class="text-[9px] italic text-red-600 mb-6 border-b-2 border-red-100 pb-4">
-                    คำชี้แจง : จงอ่านข้อความต่อไปนี้ให้ครบทุกข้อแล้วนั่งอยู่เฉยๆ
-                </p>
-                <ol class="list-decimal list-inside space-y-3 pl-2 sm:pl-4">
-                    <li>ปรบมือ 5 ครั้ง</li>
-                    <li>กระโดดตบ 5 ครั้ง</li>
-                    <li>วิ่งแตะผนังห้อง</li>
-                    <li>นอนหงายดูเพดาน 3 วินาที</li>
-                    <li>ชูมือขวาแล้วร้อง เฮ้ ดังๆ 3 ครั้ง</li>
-                    <li>จับคู่ 2 คนแล้วปรบมือกัน 5 ครั้ง</li>
-                    <li>จับคู่ใหม่ 2 คน จับมือกันชูขึ้น ตะโกนดังๆ ว่า “สุพรรณบุรี” 5 ครั้ง</li>
-                    <li>จับกลุ่ม 4 คน แล้วกล่าวคำว่า “ไชโย” พร้อมกัน 3 ครั้ง</li>
-                    <li>จับกลุ่มกัน 6 คน ร้องเพลง"Six Seven Song" ดังๆ พร้อมเต้นท่าประกอบเพลง</li>
-                    <li>จับมือเพื่อนเป็นวงกลม 10 คน แล้วตะโกนชื่อตัวเองดังๆ</li>
-                </ol>
+        <!-- Screen 1: Login / Input Name -->
+        <div id="screen-login" class="p-8">
+            <div class="mb-6">
+                <label for="user-name" class="block text-sm font-medium text-gray-700 mb-2">กรุณากรอกชื่อของคุณ</label>
+                <input type="text" id="user-name" placeholder="พิมพ์ชื่อของคุณ..." class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all text-gray-800 bg-white/70 focus:bg-white shadow-inner">
             </div>
+            <button onclick="startDrawSequence()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg flex justify-center items-center gap-2">
+                <span>เข้าสู่การจับฉลาก</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+        </div>
 
-            <!-- English Content (Hidden by default) -->
-            <div id="content-en" class="hidden text-gray-800 text-lg leading-relaxed">
-                <p class="text-[9px] italic text-red-600 mb-6 border-b-2 border-red-100 pb-4">
-                    Instructions: Read through all of the following items completely, and then just sit quietly.
-                </p>
-                <ol class="list-decimal list-inside space-y-3 pl-2 sm:pl-4">
-                    <li>Clap your hands 5 times.</li>
-                    <li>Do 5 jumping jacks.</li>
-                    <li>Run and touch the wall.</li>
-                    <li>Lie on your back and look at the ceiling for 3 seconds.</li>
-                    <li>Raise your right hand and shout "Hey!" loudly 3 times.</li>
-                    <li>Pair up with a partner and clap hands together 5 times.</li>
-                    <li>Find a new partner, hold hands, raise them up, and shout "Suphan Buri" loudly 5 times.</li>
-                    <li>Form a group of 4 people and say "Chai-yo!" (Hooray!) together 3 times.</li>
-                    <li>Form a group of 6 people and sing the "Six Seven Song" loudly while dancing to the song.</li>
-                    <li>Form a circle of 10 people holding hands, and shout your own name loudly.</li>
-                </ol>
+        <!-- Screen 2 & 3: Scroll Draw & Result -->
+        <div id="screen-draw" class="p-8 hidden flex flex-col items-center justify-center min-h-[400px]">
+            <h3 id="welcome-name" class="text-xl font-bold text-red-700 mb-1 text-center">คุณ ...</h3>
+            <p id="top-hint" class="text-gray-500 mb-8 text-center font-medium">เปิด Secret Buddy เพื่อดูภารกิจของคุณ</p>
+            
+            <!-- Interactive Scroll -->
+            <div id="slider-wrapper" class="relative w-full max-w-[280px] h-20 slider-track rounded-xl overflow-hidden border border-gray-200 select-none touch-none shadow-sm">
+                
+                <!-- Underneath Content (Revealed Prize) -->
+                <div class="absolute inset-0 flex flex-col justify-center items-center z-0 px-4 text-center parchment opacity-90">
+                    <p class="text-xs font-bold text-gray-600 mb-1">Secret Buddy ของคุณคือ...</p>
+                    <h2 id="prize-result-text" class="text-2xl font-extrabold text-red-600 opacity-0 transition-opacity duration-500">...</h2>
+                </div>
+                
+                <!-- Sliding Cover (Ancient Scroll) -->
+                <div id="slider-cover" class="absolute top-0 left-0 w-full h-full z-10 flex cursor-grab active:cursor-grabbing transform transition-transform">
+                    <div class="flex-grow parchment flex flex-col items-center justify-center border-r border-[#8b5a2b]/30">
+                        <div id="drag-hint" class="text-red-800 font-bold animate-[pulse_1.5s_ease-in-out_infinite] flex items-center gap-2 drop-shadow-sm">
+                            <span>Slide me</span>
+                            <span class="text-xl">👉</span>
+                        </div>
+                    </div>
+                    <!-- Drag Handle (Wood Rod) -->
+                    <div class="w-10 h-full wood-rod flex items-center justify-center text-white/80 shadow-[-3px_0_8px_rgba(0,0,0,0.3)]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                </div>
             </div>
             
+            <!-- Loading & Database Status -->
+            <div id="db-status-container" class="mt-8 w-full hidden flex-col items-center justify-center min-h-[80px]">
+                <!-- Dynamic Content Injected Here -->
+            </div>
         </div>
-        
-        <!-- Initial empty state message -->
-        <div id="empty-state" class="p-12 text-center text-gray-400 min-h-[400px] flex items-center justify-center">
-            <p>Please select a language above to start.<br>กรุณาเลือกภาษาด้านบนเพื่อเริ่มต้น</p>
-        </div>
-
     </div>
 
+    <!-- Global Footer -->
+    <div class="fixed bottom-6 left-0 w-full flex justify-center z-30 pointer-events-none px-4">
+        <div class="glass-card px-5 py-2.5 rounded-full shadow-md border border-white/50 pointer-events-auto text-center text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+            <span class="text-red-600 font-semibold">สามารถเปิดได้เพียงครั้งเดียวเท่านั้น</span> 
+            <span class="mx-1.5 text-gray-300">//</span> 
+            พัฒนาระบบโดย มีนกาญจน์ แจ่มพงษ์
+        </div>
+    </div>
+
+    <!-- Admin Reset -->
+    <button onclick="resetApp()" class="fixed bottom-4 right-4 z-50 text-[10px] text-gray-300 hover:text-red-600 bg-transparent px-2 py-1 rounded transition-colors cursor-pointer outline-none">
+        รีเซ็ต
+    </button>
+
     <script>
-        /**
-         * Function to toggle visibility of content based on selected language.
-         * @param {string} lang - The language code ('th' or 'en').
-         */
-        function showContent(lang) {
-            // Get DOM elements
-            const container = document.getElementById('content-container');
-            const emptyState = document.getElementById('empty-state');
-            const thContent = document.getElementById('content-th');
-            const enContent = document.getElementById('content-en');
+        // --- Configuration ---
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrM1BJ-QJybjyZj45LtnXfG7xfcVNVAfCnwSZyw2dYsNR8GsR-aLjm5wdKIZnYSiF-tA/exec';
+        const prizes = ['เช็ค', 'โดนัท'];
+        const STORAGE_KEY = 'mission_secret_buddy_data';
+        
+        let currentUserName = '';
+        
+        // --- DOM Elements ---
+        const sliderCover = document.getElementById('slider-cover');
+        const dragHint = document.getElementById('drag-hint');
+        const prizeResultText = document.getElementById('prize-result-text');
+        const dbStatusContainer = document.getElementById('db-status-container');
+        
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        let sliderWidth = 0;
+        let SNAP_THRESHOLD = 0;
+        let hasOpened = false;
 
-            // Hide empty state and show main container
-            emptyState.style.display = 'none';
-            container.classList.remove('hidden');
+        // --- Initialize ---
+        function initSliderDimensions() {
+            const wrapper = document.getElementById('slider-wrapper');
+            sliderWidth = wrapper.offsetWidth;
+            SNAP_THRESHOLD = sliderWidth * 0.55; // เลื่อน 55% จะเด้งเปิด
+        }
+        window.addEventListener('resize', initSliderDimensions);
+        initSliderDimensions();
 
-            // Reset animation classes
-            thContent.classList.remove('fade-in-up');
-            enContent.classList.remove('fade-in-up');
+        // --- Data Management (LocalStorage) ---
+        function getDrawData() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
 
-            if (lang === 'th') {
-                // Show Thai, hide English
-                enContent.classList.add('hidden');
-                thContent.classList.remove('hidden');
-                
-                // Force a reflow to restart animation (trick for re-triggering CSS animation)
-                void thContent.offsetWidth; 
-                thContent.classList.add('fade-in-up');
-                
-            } else if (lang === 'en') {
-                // Show English, hide Thai
-                thContent.classList.add('hidden');
-                enContent.classList.remove('hidden');
-                
-                // Force a reflow to restart animation
-                void enContent.offsetWidth;
-                enContent.classList.add('fade-in-up');
+        function saveDrawData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // --- Flow Control ---
+        function startDrawSequence() {
+            const nameInput = document.getElementById('user-name').value.trim();
+            if (!nameInput) {
+                showToast('กรุณากรอกชื่อของคุณ', 'error');
+                return;
             }
+            
+            currentUserName = nameInput;
+            const drawData = getDrawData();
+            const existingEntry = drawData.find(d => d.name === currentUserName);
+            
+            // Check if this person already played
+            if (existingEntry) {
+                showAlreadyDrawn(existingEntry.name, existingEntry.prize);
+                return;
+            }
+            
+            // Limit to 2 players maximum
+            if (drawData.length >= 2) {
+                showToast('สิ้นสุดกิจกรรม ฉลากถูกจับครบแล้ว', 'error');
+                return;
+            }
+
+            // Enter Screen 2
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-draw').classList.remove('hidden');
+            document.getElementById('welcome-name').innerText = `คุณ ${currentUserName}`;
+            
+            resetSliderUI();
+        }
+
+        function showAlreadyDrawn(userName, prize) {
+            document.getElementById('screen-login').classList.add('hidden');
+            document.getElementById('screen-draw').classList.remove('hidden');
+            document.getElementById('welcome-name').innerText = `คุณ ${userName}`;
+            
+            hasOpened = true;
+            sliderCover.style.transition = 'none';
+            sliderCover.style.transform = `translateX(100%)`;
+            prizeResultText.innerText = prize;
+            prizeResultText.classList.remove('opacity-0');
+            dragHint.innerText = 'เปิดไปแล้ว';
+            dragHint.classList.remove('animate-[pulse_1.5s_ease-in-out_infinite]');
+            
+            showToast(`คุณได้เปิด Secret Buddy ไปแล้ว`, 'success');
+        }
+
+        function resetSliderUI() {
+            hasOpened = false;
+            currentX = 0;
+            sliderCover.style.transition = 'none';
+            sliderCover.style.transform = `translateX(0px)`;
+            prizeResultText.classList.add('opacity-0');
+            dbStatusContainer.classList.add('hidden');
+            dbStatusContainer.innerHTML = '';
+            dragHint.innerHTML = '<span>Slide me</span><span class="text-xl">👉</span>';
+            dragHint.classList.add('animate-[pulse_1.5s_ease-in-out_infinite]');
+        }
+
+        function resetApp() {
+            // ระบบล้างข้อมูลสำหรับ Admin (ไม่มี alert/confirm popup รบกวน)
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+
+        // --- Slider Drag Logic ---
+        function startDrag(e) {
+            if (hasOpened) return;
+            isDragging = true;
+            startX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            sliderCover.style.transition = 'none'; 
+        }
+
+        function moveDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault(); 
+            
+            const currentClientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const deltaX = Math.max(0, currentClientX - startX); // อนุญาตให้เลื่อนขวาอย่างเดียว
+            
+            if (deltaX <= sliderWidth) { 
+                currentX = deltaX;
+                sliderCover.style.transform = `translateX(${currentX}px)`;
+            }
+        }
+
+        function endDrag(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            if (currentX >= SNAP_THRESHOLD) {
+                // Snap Open (เปิดคัมภีร์สำเร็จ)
+                hasOpened = true;
+                sliderCover.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'; 
+                sliderCover.style.transform = `translateX(100%)`;
+                dragHint.classList.remove('animate-[pulse_1.5s_ease-in-out_infinite]');
+                dragHint.innerText = 'เปิดสำเร็จ!';
+                
+                setTimeout(() => {
+                    executeDraw();
+                }, 400);
+            } else {
+                // Snap back (ดีดกลับถ้าเลื่อนไม่ถึงจุด)
+                sliderCover.style.transition = 'transform 0.3s ease-out';
+                sliderCover.style.transform = `translateX(0px)`;
+                currentX = 0;
+            }
+        }
+
+        // Event Listeners for Dragging
+        sliderCover.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', moveDrag, { passive: false });
+        window.addEventListener('mouseup', endDrag);
+        
+        sliderCover.addEventListener('touchstart', startDrag, { passive: false });
+        window.addEventListener('touchmove', moveDrag, { passive: false });
+        window.addEventListener('touchend', endDrag);
+
+
+        // --- Core Draw Logic ---
+        function executeDraw() {
+            const drawData = getDrawData();
+            let wonPrize = '';
+            
+            if (drawData.length === 0) {
+                // คนแรก สุ่มจากของที่มี
+                const randomIndex = Math.floor(Math.random() * prizes.length);
+                wonPrize = prizes[randomIndex];
+            } else {
+                // คนที่สอง ได้ของที่เหลืออัตโนมัติ
+                const takenPrize = drawData[0].prize;
+                wonPrize = prizes.find(p => p !== takenPrize);
+            }
+
+            // บันทึกสถานะลงเครื่อง
+            drawData.push({ 
+                name: currentUserName, 
+                prize: wonPrize, 
+                timestamp: new Date().toISOString() 
+            });
+            saveDrawData(drawData);
+
+            // แสดงผล UI
+            prizeResultText.innerText = wonPrize;
+            prizeResultText.classList.remove('opacity-0');
+            
+            triggerConfetti();
+            saveToGoogleSheets(currentUserName, wonPrize);
+        }
+
+        // --- Effects & Google Sheets API ---
+        function triggerConfetti() {
+            var duration = 3500;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                // โปรยกระดาษสีแดง ขาว ทอง
+                confetti({
+                    particleCount: 6,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#dc2626', '#ffffff', '#fbbf24'] 
+                });
+                confetti({
+                    particleCount: 6,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#dc2626', '#ffffff', '#fbbf24']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        function saveToGoogleSheets(name, prize) {
+            dbStatusContainer.classList.remove('hidden');
+            dbStatusContainer.classList.add('flex');
+            
+            // 1. แสดงสถานะกำลังบันทึก (สีเหลือง)
+            dbStatusContainer.innerHTML = `
+                <div class="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 animate-ping"></span>
+                    กำลังบันทึกข้อมูลลงฐานข้อมูล...
+                </div>
+            `;
+
+            // เตรียมข้อมูล (URLSearchParams)
+            const formData = new URLSearchParams();
+            formData.append('name', name);
+            formData.append('buddy', prize);
+
+            // 2. ส่งข้อมูลไป Google Apps Script (no-cors)
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors' 
+            }).then(() => {
+                // 3. หน่วงเวลาเล็กน้อยให้ UI แสดงผลลื่นไหล ก่อนเปลี่ยนเป็นสถานะสำเร็จ (สีเขียว)
+                setTimeout(() => {
+                    dbStatusContainer.innerHTML = `
+                        <div class="flex flex-col items-center gap-3 w-full animate-[fadeIn_0.5s_ease-out]">
+                            <div class="flex items-center gap-2 text-green-600 font-bold bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                                บันทึกข้อมูลลงฐานข้อมูลสำเร็จ
+                            </div>
+                            <div class="text-red-600 font-bold text-sm animate-pulse flex items-center gap-1.5 bg-red-50 px-3 py-1.5 rounded-md">
+                                <span>📸</span> กรุณาบันทึกหน้าจอนี้ไว้เป็นหลักฐาน
+                            </div>
+                        </div>
+                    `;
+                }, 800);
+            }).catch(e => {
+                dbStatusContainer.innerHTML = `
+                    <div class="flex items-center gap-2 text-red-600 font-bold bg-red-50 px-4 py-2 rounded-lg border border-red-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล
+                    </div>
+                `;
+                console.error(e);
+            });
+        }
+
+        // --- Custom Toast Notification ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'success' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-red-50 border-red-500 text-red-800';
+            const icon = type === 'success' 
+                ? '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                : '<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+            
+            toast.className = `flex items-center gap-3 p-4 border-l-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${colors} glass-card`;
+            toast.innerHTML = `
+                ${icon}
+                <p class="text-sm font-semibold">${message}</p>
+            `;
+            
+            container.appendChild(toast);
+            
+            // เล่นแอนิเมชันสไลด์เข้า
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full');
+            });
+            
+            // ลบออกอัตโนมัติ
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
     </script>
 </body>
