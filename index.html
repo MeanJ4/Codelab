@@ -123,8 +123,8 @@
         // URL ของ Google Apps Script ที่ได้รับมา
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrM1BJ-QJybjyZj45LtnXfG7xfcVNVAfCnwSZyw2dYsNR8GsR-aLjm5wdKIZnYSiF-tA/exec';
         
-        // รายการของรางวัลที่ระบุไว้ในระบบอย่างชัดเจน
-        const availableGifts = ['เช็ค', 'โดนัท'];
+        // รายการของรางวัลที่ระบุไว้ในระบบ (ปรับให้เหลือเพียงโดนัท)
+        const availableGifts = ['โดนัท'];
         
         // ====================================================
 
@@ -221,16 +221,9 @@
 
         function processDraw() {
             const history = JSON.parse(localStorage.getItem('drawHistory')) || [];
-            let finalGift = '';
-
-            // อัลกอริทึมการสุ่มและหักออก
-            if (history.length === 0) {
-                const randomIndex = Math.floor(Math.random() * availableGifts.length);
-                finalGift = availableGifts[randomIndex];
-            } else {
-                const usedGift = history[0].buddy;
-                finalGift = availableGifts.find(gift => gift !== usedGift);
-            }
+            
+            // อัลกอริทึมถูกปรับให้กำหนดผลลัพธ์เป็น "โดนัท" เสมอ
+            let finalGift = availableGifts[0]; 
 
             history.push({ name: currentUserName, buddy: finalGift });
             localStorage.setItem('drawHistory', JSON.stringify(history));
