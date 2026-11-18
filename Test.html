@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Mission: Secret Buddy</title>
+    <!-- เรียกใช้ Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- เรียกใช้ไลบรารี Canvas Confetti สำหรับเอฟเฟกต์กระดาษโปรย -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- เรียกใช้ฟอนต์ Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+            overflow: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 4px solid #ef4444;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.1);
+        }
+        /* การตกแต่งส่วนคัมภีร์ (Scroll) */
+        .scroll-container {
+            width: 100%;
+            height: 80px;
+            background: #fdf6e3; 
+            border: 2px solid #8b4513;
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(139, 69, 19, 0.3);
+        }
+        .scroll-handle {
+            width: 70px;
+            height: 100%;
+            background: linear-gradient(to right, #8b4513, #a0522d, #8b4513);
+            border-radius: 40px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .scroll-handle:active {
+            cursor: grabbing;
+        }
+        .scroll-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 80px;
+            color: #8b4513;
+            font-weight: bold;
+            opacity: 0.5;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center relative">
+
+    <!-- โลโก้ CodeLab -->
+    <img src="https://www.codelabthailand.com/brand/logo.svg" alt="CodeLab Logo" class="h-16 mb-6 z-10">
+
+    <!-- กรอบแอปพลิเคชันหลัก -->
+    <div class="glass-card w-11/12 max-w-md rounded-2xl p-6 relative z-10">
+        
+        <!-- หน้าที่ 1: กรอกชื่อ -->
+        <div id="screen1" class="text-center transition-all duration-500">
+            <h2 class="text-2xl font-bold text-red-600 mb-2">Mission: Secret Buddy</h2>
+            <div class="bg-yellow-100 text-yellow-800 text-xs py-1 px-2 rounded-full mb-4 inline-block font-medium">โหมดทดสอบ (Test Mode)</div>
+            <p class="text-gray-600 mb-6 text-sm">กรุณาระบุชื่อของคุณเพื่อเริ่มภารกิจ</p>
+            
+            <!-- ส่วนที่ตกหล่นไป: ช่องกรอกชื่อและปุ่มกด -->
+            <input type="text" id="userNameInput" placeholder="พิมพ์ชื่อของคุณ..." class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent mb-4 text-center text-lg font-medium text-gray-800">
+            <button onclick="startDraw()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition active:scale-95">
+                เข้าสู่ภารกิจ
+            </button>
+            <!-- สิ้นสุดส่วนที่ตกหล่น -->
+
+        </div>
+
+        <!-- หน้าที่ 2: ลากเพื่อเปิดคัมภีร์ -->
+        <div id="screen2" class="text-center hidden transition-all duration-500">
+            <h3 id="greetingName" class="text-xl font-bold text-gray-800 mb-2"></h3>
+            <p class="text-red-600 font-medium mb-8">เปิด Secret Buddy เพื่อดูภารกิจของคุณ</p>
+            
+            <div class="scroll-container mx-auto" id="scrollContainer">
+                <div class="scroll-text">เลื่อนเพื่อเปิด</div>
+                <div class="scroll-handle" id="scrollHandle">Slide me</div>
+            </div>
+            <p class="text-gray-400 text-xs mt-4">ลากปุ่มไม้จากซ้ายไปขวาให้สุด</p>
+        </div>
+
+        <!-- หน้าที่ 3: แสดงผลลัพธ์ -->
+        <div id="screen3" class="text-center hidden transition-all duration-500">
+            <h3 class="text-gray-500 font-medium mb-2">Secret Buddy ของคุณคือ...</h3>
+            <div class="text-4xl font-bold text-red-600 my-6 animate-bounce" id="resultText">?</div>
+            
+            <!-- สถานะการบันทึกฐานข้อมูล -->
+            <div id="dbStatus" class="mt-6 text-sm py-2 px-3 rounded-lg bg-gray-50 text-gray-600 inline-block hidden">
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer ส่วนแจ้งเตือนและเครดิต -->
+    <div class="absolute bottom-4 text-center w-full z-10">
+        <p class="text-red-500 font-semibold text-sm drop-shadow-sm mb-1">สามารถเปิดได้เพียงครั้งเดียวเท่านั้น</p>
+        <p class="text-gray-400 text-xs">พัฒนาระบบโดย มีนกาญจน์ แจ่มพงษ์</p>
+    </div>
+
+    <!-- ส่วนของการประมวลผล JavaScript -->
+    <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrM1BJ-QJybjyZj45LtnXfG7xfcVNVAfCnwSZyw2dYsNR8GsR-aLjm5wdKIZnYSiF-tA/exec';
+        
+        let currentUserName = '';
+
+        function startDraw() {
+            const input = document.getElementById('userNameInput').value.trim();
+            if (!input) {
+                alert('กรุณากรอกชื่อของคุณ');
+                return;
+            }
+            
+            const history = JSON.parse(localStorage.getItem('testDrawHistory')) || [];
+            
+            const existingUser = history.find(h => h.name === input);
+            if (existingUser) {
+                showResult(existingUser.buddy, true);
+                return;
+            }
+
+            currentUserName = input;
+            document.getElementById('greetingName').innerText = 'คุณ ' + currentUserName;
+            
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.remove('hidden');
+            initScrollLogic();
+        }
+
+        function initScrollLogic() {
+            const handle = document.getElementById('scrollHandle');
+            const container = document.getElementById('scrollContainer');
+            let isDragging = false;
+            let startX;
+            
+            const maxDrag = container.offsetWidth - handle.offsetWidth;
+
+            const startDrag = (e) => {
+                isDragging = true;
+                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            };
+
+            const onDrag = (e) => {
+                if (!isDragging) return;
+                let currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                let walk = currentX - startX;
+                
+                if (walk < 0) walk = 0;
+                if (walk > maxDrag) walk = maxDrag;
+                
+                handle.style.transform = `translateX(${walk}px)`;
+
+                if (walk > maxDrag * 0.9) {
+                    isDragging = false;
+                    handle.style.transition = 'transform 0.3s';
+                    handle.style.transform = `translateX(${maxDrag}px)`;
+                    setTimeout(processDraw, 300);
+                }
+            };
+
+            const stopDrag = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                handle.style.transition = 'transform 0.3s';
+                handle.style.transform = `translateX(0px)`;
+                setTimeout(() => { handle.style.transition = 'none'; }, 300);
+            };
+
+            handle.addEventListener('mousedown', startDrag);
+            window.addEventListener('mousemove', onDrag);
+            window.addEventListener('mouseup', stopDrag);
+
+            handle.addEventListener('touchstart', startDrag);
+            window.addEventListener('touchmove', onDrag);
+            window.addEventListener('touchend', stopDrag);
+        }
+
+        function processDraw() {
+            // ล็อกผลลัพธ์เป็น "ไม่บอก" สำหรับหน้าทดสอบ
+            let finalGift = 'ไม่บอก';
+
+            const history = JSON.parse(localStorage.getItem('testDrawHistory')) || [];
+            history.push({ name: currentUserName, buddy: finalGift });
+            // ใช้ testDrawHistory เพื่อไม่ให้ไปกวนข้อมูลของหน้าจริง
+            localStorage.setItem('testDrawHistory', JSON.stringify(history));
+
+            showResult(finalGift, false);
+            
+            // ยังคงส่งข้อมูลทดสอบเข้า Google Sheets เพื่อเช็คการเชื่อมต่อ API ว่าทำงานได้ปกติหรือไม่
+            saveToGoogleSheets(currentUserName, finalGift);
+        }
+
+        function showResult(gift, isHistory) {
+            document.getElementById('screen1').classList.add('hidden');
+            document.getElementById('screen2').classList.add('hidden');
+            document.getElementById('screen3').classList.remove('hidden');
+
+            document.getElementById('resultText').innerText = gift;
+
+            if (!isHistory) {
+                fireConfetti();
+            } else {
+                const dbStatus = document.getElementById('dbStatus');
+                dbStatus.classList.remove('hidden');
+                dbStatus.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span> ข้อมูลถูกบันทึกไว้ในระบบแล้ว`;
+            }
+        }
+
+        function fireConfetti() {
+            var duration = 3000;
+            var end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffffff', '#ef4444', '#ffd700'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, origin: { x: 1 }, colors: ['#ffffff', '#ef4444', '#ffd700'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
+        async function saveToGoogleSheets(name, buddy) {
+            const dbStatus = document.getElementById('dbStatus');
+            dbStatus.classList.remove('hidden');
+            dbStatus.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-2 animate-ping"></span> กำลังบันทึกข้อมูลลงฐานข้อมูล...`;
+
+            const formData = new URLSearchParams();
+            formData.append('name', name);
+            formData.append('buddy', buddy);
+
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors'
+                });
+
+                dbStatus.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span> บันทึกข้อมูลลงฐานข้อมูลสำเร็จ`;
+                dbStatus.classList.add('text-green-700', 'bg-green-50');
+                
+                const screenshotWarning = document.createElement('div');
+                screenshotWarning.className = 'mt-3 text-red-600 font-bold text-sm animate-pulse flex items-center justify-center gap-1';
+                screenshotWarning.innerHTML = `📸 กรุณาบันทึกหน้าจอนี้ไว้เป็นหลักฐาน`;
+                document.getElementById('screen3').appendChild(screenshotWarning);
+
+            } catch (error) {
+                dbStatus.innerHTML = `<span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-2"></span> เกิดข้อผิดพลาดในการบันทึกข้อมูล`;
+            }
+        }
+    </script>
+</body>
+</html>
